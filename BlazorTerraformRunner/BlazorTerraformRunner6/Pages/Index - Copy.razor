@@ -1,0 +1,65 @@
+﻿@page "/index2"
+@using KubeClient;
+@using KubeClient.Extensions.WebSockets;
+@using KubeClient.Models;
+@using System.Text;
+
+<PageTitle>Index</PageTitle>
+
+<h1>Hello, world!</h1>
+
+Welcome to your new app.
+
+<button @onclick="ListPodsClicked">List pods</button>
+<button @onclick="ExecPodClicked">Exec pod</button>
+
+<p>
+    @result
+</p>
+@code {
+    KubeApiClient client;
+    string result = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        ILoggerFactory loggers = new LoggerFactory();
+        //loggers.AddConsole();
+        // Assumes you're using "kubectl proxy", and no authentication is required.
+        client = KubeApiClient.Create("http://localhost:8001", loggers);
+    }
+    async Task ListPodsClicked()
+    {        
+        PodListV1 pods = await client.PodsV1().List(
+        //        labelSelector: "k8s-app=my-app"
+        );
+    }
+
+    async Task ExecPodClicked()
+    {
+        K8sMultiplexer connection = await client.PodsV1().ExecAndConnect(
+            kubeNamespace: "default",
+            podName: "nginx",
+            command: "/bin/bash",
+            stdin: true,
+            stdout: true,
+            tty: true
+        );
+        using (connection)
+        using (StreamWriter stdin = new StreamWriter(connection.GetOutputStream(0), Encoding.UTF8))
+        using (StreamReader stdout = new StreamReader(connection.GetInputStream(1), Encoding.UTF8))
+        {
+            await stdin.WriteLineAsync("ls -l /");
+            await stdin.WriteLineAsync("exit");
+
+            // Read from STDOUT until process terminates.
+            string line;
+            while ((line = await stdout.ReadLineAsync()) != null)
+            {
+                result += line + "<br>\n";
+                this.StateHasChanged();
+            }
+        }
+    }
+
+
+}

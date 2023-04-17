@@ -1,0 +1,15 @@
+﻿@page "/messages"
+@using BlazorTerraformRunner.Services;
+@using Microsoft.AspNetCore.Components.QuickGrid
+@inject MessageRepository messageRepository
+
+<h3>Messages</h3>
+
+<QuickGrid Items="@messageRepository.Messages.AsQueryable()">
+    <PropertyColumn Title="Type" Property="@(p => p.Value.MessageType)"></PropertyColumn>
+    <PropertyColumn Title="Message" Property="@(p => p.Value.Text)"></PropertyColumn>
+</QuickGrid>
+
+@code {
+
+}

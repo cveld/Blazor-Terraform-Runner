@@ -1,0 +1,257 @@
+﻿@page "/"
+@using BlazorTerraformRunner.Models;
+@using BlazorTerraformRunner.Services;
+@using BlazorTerraformRunner.Utility;
+@using BlazorTerraformRunner.Components;
+@using Microsoft.AspNetCore.Components.QuickGrid
+@using System.Collections.Concurrent;
+@using System.Text.Json;
+@using System.Timers;
+@using k8s.Autorest;
+@using k8s.Models;
+@using k8s;
+@inject KubernetesClient client
+@inject TerraformRunner terraformRunner
+@inject FileSystemMonitors fileSystemMonitors
+@inject IFileSystemMonitorHandler fileSystemMonitorHandler
+@implements IDisposable
+@inject IJSRuntime JsRuntime
+@inject WorkspaceConfigService workspaceConfigService
+@inject MessageService messageService
+
+<div class="header">
+<PageTitle>Index</PageTitle>
+
+<QuickGrid Items="@podList.AsQueryable()">
+    <PropertyColumn Title="Name" Property="@(p => p.Value.Pod.Name())" Sortable="true" />
+    <TemplateColumn>@context.Value.Pod.Status?.Phase</TemplateColumn>
+    <TemplateColumn Title="Actions">
+        <button @onclick="() => DeletePodClicked(context.Key)">Delete</button>
+        @if (!String.IsNullOrEmpty(context.Value.Logfile))
+        {
+            <button @onclick="() => MonitorLogClicked(context.Key)">Monitor</button>
+        }
+    </TemplateColumn>
+</QuickGrid>
+
+<button @onclick="AutoMonitorClicked">@(autoMonitorEnabled ? "Disable auto monitor" : "Enable auto monitor")</button>
+
+<button @onclick="TerraformInitClicked">Terraform init</button>
+<button @onclick="TerraformPlanClicked">Terraform plan</button>
+<button @onclick="FileWatcherClicked">@(fileWatcherEnabled ? "Disable file watcher" : "Enable file watcher")</button>
+<button @onclick="ToastClicked">Toast</button>
+<p>
+    podListResponse: @((MarkupString)podlistresponsemessages)
+</p>
+<p style="color:red">
+    <button @onclick="ClearErrorsClicked">Clear errors</button>
+    @((MarkupString)errors)    
+</p>
+
+<p>@((MarkupString)fileSystemTriggers)    </p>
+<p>@((MarkupString)monitorMessages)    </p>
+
+<p>Logfile: @currentMonitor</p>
+</div>
+<Monitor LogFile="@currentMonitor"></Monitor>
+
+@*<HACC.Components.WebConsole ></HACC.Components.WebConsole>*@
+
+@code {
+    bool fileWatcherEnabled;
+    bool autoMonitorEnabled;
+    string errors = String.Empty;
+    string fileSystemTriggers = String.Empty;
+    string monitorMessages = String.Empty;
+    ConcurrentDictionary<string, TerraformPodViewModel> podList = new ConcurrentDictionary<string, TerraformPodViewModel>();
+    string? currentMonitor;
+    FileSystemMonitor? fileSystemMonitor;
+    Task<HttpOperationResponse<V1PodList>>? podListResponseTask;
+    string podlistresponsemessages = String.Empty;
+    private System.Timers.Timer? aTimer;
+
+    void ToastClicked()
+    {
+        messageService.ShowInfo("I'm an INFO message");
+    }
+
+    void AutoMonitorClicked()
+    {
+        if (autoMonitorEnabled)
+        {
+            aTimer?.Stop();
+            aTimer?.Dispose();
+        }
+        else
+        {
+            SetTimer();
+        }
+        autoMonitorEnabled = !autoMonitorEnabled;
+    }
+
+    private void SetTimer()
+    {
+        // Create a timer with a second interval.
+        aTimer = new System.Timers.Timer(1000);
+        // Hook up the Elapsed event for the timer.
+        aTimer.Elapsed += OnTimedEvent;
+        aTimer.AutoReset = true;
+        aTimer.Enabled = true;
+    }
+
+    private void OnTimedEvent(Object? source, ElapsedEventArgs e)
+    {
+        //JsRuntime.InvokeVoidAsync("OnScrollEvent");
+
+    }
+
+    protected override void OnInitialized()
+    {
+        fileSystemMonitor = fileSystemMonitors.GetMonitor(workspaceConfigService.CurrentWorkspaceConfig);
+        fileWatcherEnabled = fileSystemMonitor != null;
+        if(fileWatcherEnabled)
+        {
+            EnableFileSystemMonitorHandler();
+        }
+    }
+
+    bool podlistinitialized = false;
+    Watcher<V1Pod>? watcher;
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (podlistinitialized)
+        {
+            return;
+        }
+        podlistinitialized = true;
+        podListResponseTask = client.client.CoreV1.ListNamespacedPodWithHttpMessagesAsync("default", watch: true);
+        watcher = podListResponseTask.Watch<V1Pod, V1PodList>(
+            async (t, i) => await InvokeAsync(() => Handler(t, i)),
+            (err) =>
+            {
+                InvokeAsync(() =>
+                {
+                    errors += $"Exceptions: {err.Message}<br>\n";
+                    StateHasChanged();
+                });
+            });
+    }
+
+    public void Dispose()
+    {
+        if (fileWatcherEnabled)
+        {
+            DisableFileSystemMonitorHandler();
+        }
+        watcher?.Dispose();
+    }
+
+    void EnableFileSystemMonitorHandler()
+    {
+        ArgumentNullException.ThrowIfNull(fileSystemMonitor);
+        fileSystemMonitor.AddHandler(fileSystemMonitorHandler);
+    }
+
+    void ClearErrorsClicked()
+    {
+        errors = "";        
+    }
+
+    void Handler(WatchEventType type, V1Pod item)
+    {
+        switch (type)
+        {
+            case WatchEventType.Deleted:
+                podList.Remove(item.Name(), out var value);
+                break;
+            case WatchEventType.Added:
+                string? logfile = null;
+                string? id = null;
+                item.Metadata.Labels?.TryGetValue("logfile", out logfile);
+                item.Metadata.Labels?.TryGetValue("id", out id);
+                //Guid guid = null;
+                Guid.TryParse(id, out var guid);
+
+                podList.AddOrUpdate
+                (item.Name(), new TerraformPodViewModel { Pod = item, Logfile = logfile, Id = guid }, (s, pod) =>
+                {
+                    pod.Pod = item;
+                    pod.Logfile = logfile;
+                    pod.Id = guid;
+                    return pod;
+                });
+                if (autoMonitorEnabled) {
+                    MonitorLogClicked(item.Name());
+                }
+                break;
+            case WatchEventType.Error:
+                errors += $"error with pod {item.Name}<br>";
+                break;
+            case WatchEventType.Modified:
+                podList[item.Name()].Pod = item;
+                if (autoMonitorEnabled)
+                {
+                    MonitorLogClicked(item.Name());
+                }
+                break;
+            default:
+                errors += $"unexpected value {type}";
+                break;
+        }
+        StateHasChanged();
+    }
+
+    void FileWatcherClicked()
+    {
+        if (!fileWatcherEnabled)
+        {
+            fileSystemMonitor = fileSystemMonitors.AddMonitor(workspaceConfigService.CurrentWorkspaceConfig);
+            EnableFileSystemMonitorHandler();
+        }
+        else
+        {
+            DisableFileSystemMonitorHandler();
+            fileSystemMonitors.RemoveMonitor(workspaceConfigService.CurrentWorkspaceConfig);
+        }
+        fileWatcherEnabled = !fileWatcherEnabled;
+    }
+
+    void DisableFileSystemMonitorHandler()
+    {
+        ArgumentNullException.ThrowIfNull(fileSystemMonitor);
+        fileSystemMonitor.RemoveHandler(fileSystemMonitorHandler);
+    }
+
+    void MonitorLogClicked(string key)
+    {
+
+        currentMonitor = $@"{workspaceConfigService.CurrentWorkspaceConfig.LogFolder}\{podList[key].Id}\{podList[key].Logfile}";
+
+    }
+
+    async Task DeletePodClicked(string key)
+    {
+        await client.client.DeleteNamespacedPodAsync(key, podList[key].Pod.Namespace());
+    }
+
+    async Task TerraformInitClicked()
+    {
+        await RunTerraform("init", workspaceConfigService.CurrentWorkspaceConfig);
+    }
+
+    async Task TerraformPlanClicked()
+    {
+        await RunTerraform("plan", workspaceConfigService.CurrentWorkspaceConfig);
+    }
+
+    async ValueTask RunTerraform(string command, WorkspaceConfig jobConfig)
+    {
+        try
+        {
+            await terraformRunner.RunTerraform(command, jobConfig);
+        } catch (Exception e) {
+            messageService.ShowError(e.Message);
+        }
+    }
+}

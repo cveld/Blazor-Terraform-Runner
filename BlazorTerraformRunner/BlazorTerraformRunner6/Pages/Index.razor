@@ -1,0 +1,54 @@
+﻿@page "/"
+@using KubeClient;
+@using KubeClient.Extensions.WebSockets;
+@using KubeClient.Models;
+@using System.Text;
+@using k8s;
+
+<PageTitle>Index</PageTitle>
+
+<h1>Hello, world!</h1>
+
+Welcome to your new app.
+
+<button @onclick="ListPodsClicked">List pods</button>
+<button @onclick="ExecPodClicked">Exec pod</button>
+
+<p>
+    @((MarkupString)result)
+</p>
+@code {
+    Kubernetes client;
+    string result = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Load from the default kubeconfig on the machine.
+        //var config = KubernetesClientConfiguration.BuildConfigFromConfigFile();
+        var config = new KubernetesClientConfiguration { Host = "http://127.0.0.1:8001" };
+
+        // Use the config object to create a client.
+        client = new Kubernetes(config);
+
+    }
+    async Task ListPodsClicked()
+    {        
+        var namespaces = await client.CoreV1.ListNamespaceAsync();
+        foreach (var ns in namespaces.Items) {
+            result += ns.Metadata.Name + "<br>\n";
+            var list = await client.CoreV1.ListNamespacedPodAsync(ns.Metadata.Name);
+            foreach (var item in list.Items)
+            {
+                result += item.Metadata.Name + "<br>\n";
+                this.StateHasChanged();
+            }
+        }
+    }
+
+    async Task ExecPodClicked()
+    {
+       
+    }
+
+
+}

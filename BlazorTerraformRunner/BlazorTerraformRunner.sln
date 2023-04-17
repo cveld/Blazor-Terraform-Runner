@@ -1,0 +1,67 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.4.33103.184
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "exec", "..\..\..\..\..\..\..\Users\CarlintVeld\OneDrive - CloudNation\Projects\2022-11 Dotnet terraform\exec\exec.csproj", "{E99A602F-5B39-47EB-BD49-5B27147356D9}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlazorTerraformRunner", "BlazorTerraformRunner\BlazorTerraformRunner.csproj", "{DFCE035C-9F7D-48F7-A21F-591BF483F795}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlazorTerraformRunner6", "BlazorTerraformRunner6\BlazorTerraformRunner6.csproj", "{9A4EB16D-3EB7-48A1-B2BD-790DA5135F5C}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "libvt100", "libvt100\libvt100.csproj", "{86352E84-9524-4BF8-B627-9673AF132D8E}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HtmlAnsiStreamTester", "HtmlAnsiStreamTester\HtmlAnsiStreamTester.csproj", "{28E1308D-D168-4570-8EC7-3B89564C5E7A}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HclParser", "HclParser\HclParser.csproj", "{C75D3DC1-B0C5-41E3-B79B-FFFDCC5E180D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HclParserLib", "HclParserLib\HclParserLib.csproj", "{30C9A858-A2D9-4F1B-92A5-C2C00557E1FB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HclParserTest", "HclParserTest\HclParserTest.csproj", "{8B325E60-35DB-4474-AC27-EEB719B519AB}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E99A602F-5B39-47EB-BD49-5B27147356D9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E99A602F-5B39-47EB-BD49-5B27147356D9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E99A602F-5B39-47EB-BD49-5B27147356D9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E99A602F-5B39-47EB-BD49-5B27147356D9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DFCE035C-9F7D-48F7-A21F-591BF483F795}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DFCE035C-9F7D-48F7-A21F-591BF483F795}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DFCE035C-9F7D-48F7-A21F-591BF483F795}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DFCE035C-9F7D-48F7-A21F-591BF483F795}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9A4EB16D-3EB7-48A1-B2BD-790DA5135F5C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9A4EB16D-3EB7-48A1-B2BD-790DA5135F5C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9A4EB16D-3EB7-48A1-B2BD-790DA5135F5C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9A4EB16D-3EB7-48A1-B2BD-790DA5135F5C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{86352E84-9524-4BF8-B627-9673AF132D8E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{86352E84-9524-4BF8-B627-9673AF132D8E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{86352E84-9524-4BF8-B627-9673AF132D8E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{86352E84-9524-4BF8-B627-9673AF132D8E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{28E1308D-D168-4570-8EC7-3B89564C5E7A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{28E1308D-D168-4570-8EC7-3B89564C5E7A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{28E1308D-D168-4570-8EC7-3B89564C5E7A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{28E1308D-D168-4570-8EC7-3B89564C5E7A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C75D3DC1-B0C5-41E3-B79B-FFFDCC5E180D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C75D3DC1-B0C5-41E3-B79B-FFFDCC5E180D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C75D3DC1-B0C5-41E3-B79B-FFFDCC5E180D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C75D3DC1-B0C5-41E3-B79B-FFFDCC5E180D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{30C9A858-A2D9-4F1B-92A5-C2C00557E1FB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{30C9A858-A2D9-4F1B-92A5-C2C00557E1FB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{30C9A858-A2D9-4F1B-92A5-C2C00557E1FB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{30C9A858-A2D9-4F1B-92A5-C2C00557E1FB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8B325E60-35DB-4474-AC27-EEB719B519AB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8B325E60-35DB-4474-AC27-EEB719B519AB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8B325E60-35DB-4474-AC27-EEB719B519AB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8B325E60-35DB-4474-AC27-EEB719B519AB}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {43AB7D97-DD46-4009-B82F-6423834018DD}
+	EndGlobalSection
+EndGlobal
