@@ -1,0 +1,46 @@
+﻿@using System.Text.Json;
+@using BlazorTerraformRunner.Services;
+@using System.Text.Json.Nodes;
+@inject MessageService messageService
+
+<div class="plan">
+<h3>Plan</h3>
+
+@json
+
+    @if (jsonObject != null)
+    {
+        @jsonObject
+    }
+
+</div>
+
+@code {
+    [Parameter]
+    public string? PlanFile { get; set; }
+
+    string? originalPlanFile;
+    string? json;
+    JsonDocument? document;
+    JsonObject? jsonObject;
+
+    protected override void OnParametersSet()
+    {
+        if (originalPlanFile != PlanFile && PlanFile != null && File.Exists(PlanFile))
+        {
+            originalPlanFile = PlanFile;
+            json = File.ReadAllText(PlanFile);
+            try
+            {
+                document = JsonDocument.Parse(json);
+                jsonObject = JsonNode.Parse(json)?.AsObject();
+            }
+            catch (Exception e)
+            {
+                messageService.ShowError(e.Message);
+            }
+            StateHasChanged();
+        }
+    }
+}
+

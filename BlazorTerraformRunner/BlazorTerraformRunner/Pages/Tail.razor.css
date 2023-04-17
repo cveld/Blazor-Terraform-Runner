@@ -1,0 +1,41 @@
+﻿
+.box {
+    display: flex;
+    flex-flow: column;
+    flex: 1;
+    overflow: auto;
+    /*height: 100%;*/
+/*    align-items: stretch;
+*/}
+
+.header {
+    /*flex: 0 1 auto;*/
+    /* The above is shorthand for:
+  flex-grow: 0,
+  flex-shrink: 1,
+  flex-basis: auto
+  */
+}
+
+.content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: auto;
+}
+
+.zoom {
+    display: none;
+}
+
+/* hack to fix undesired horizontal scrollbar */
+.row {
+    margin-right: 0;
+    display: flex;
+    flex: 1;
+}
+
+.flex {
+    display: flex;
+    flex: 1;
+}

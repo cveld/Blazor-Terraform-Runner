@@ -1,0 +1,3 @@
+﻿locals {
+	test = 3
+}

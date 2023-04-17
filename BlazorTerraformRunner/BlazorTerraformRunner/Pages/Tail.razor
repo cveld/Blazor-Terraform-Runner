@@ -1,0 +1,128 @@
+﻿@page "/tail"
+@using BlazorTerraformRunner.Components
+@using BlazorTerraformRunner.Models;
+@using BlazorTerraformRunner.Services;
+@using System.ComponentModel;
+@inject TailService tailService
+@inject TailRepository tailRepository
+@inject WorkspaceConfigService workspaceConfigService
+@inject MessageService messageService
+@implements IDisposable
+<div class="box">
+    <div class="header @(zoom ? "zoom" : "")">
+        <h3>Tail</h3>
+        <div class="row">
+            <div class="col-md-6">
+                Last command: @tailRepository.CurrentJobRun?.Command<br />
+                Id: @tailRepository.CurrentJobRun?.Id<br />
+                currentMonitor: @currentMonitor<br />
+            </div>
+            <div class="col-md-6">
+                Pod status: @tailRepository.CurrentJobRun?.PodStatus
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6 flex">
+            <div class="content">
+                <div>
+                    <button @onclick="zoomClicked">zoom</button> zoom = @zoom
+                </div>
+                <Monitor LogFile="@currentMonitor"></Monitor>
+            </div>
+        </div>
+        <div class="col-md-6">
+            @if (planSync == PlanSyncType.NoPlan)
+            {
+                <p><i>
+                    Current job did not yield a plan. @if (planJobId != null) {
+                        <span>Showing plan for job @planJobId}</span>
+                    }
+                </i></p>
+            }
+            @if (planSync == PlanSyncType.InProgress)
+            {
+                <p><i>
+                    Current job in progress. @if (planJobId != null) {
+                        <span>Showing plan for job @planJobId</span>
+                    }
+                </i></p>
+            }
+            <Plan PlanFile="@planFile"></Plan>
+        </div>
+    </div>
+</div>
+
+@code {
+    string? currentMonitor;
+    bool zoom;
+    string? planFile;
+    Guid? planJobId;
+    PlanSyncType planSync = PlanSyncType.Initialized;
+
+    void SetCurrentMonitor()
+    {
+        currentMonitor = $@"{workspaceConfigService.CurrentWorkspaceConfig.LogFolder}\{tailRepository.CurrentJobRun?.Id}\{tailRepository.CurrentJobRun?.LogFile}";
+        switch (tailRepository.CurrentJobRun?.PodStatus) {
+            case "Succeeded":
+
+                var planPath = @$"C:\temp\terraform\{tailRepository.CurrentJobRun.Id}\terraform.plan.json";
+                if (File.Exists(planPath))
+                {
+                    planFile = planPath;
+                    planJobId = tailRepository.CurrentJobRun.Id;
+                    planSync = PlanSyncType.Plan;
+                }
+                else
+                {
+                    planSync = PlanSyncType.NoPlan;
+                }
+                break;
+            case "Failed":
+                planSync = PlanSyncType.NoPlan;
+                break;
+            case null:
+            case "Pending":
+            case "Running":
+                planSync = PlanSyncType.InProgress;
+                break;
+            default:
+                planSync = PlanSyncType.NoPlan;
+                break;
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        if (@tailRepository.CurrentJobRun?.Id != null)
+        {
+            SetCurrentMonitor();
+        }
+        tailRepository.PropertyChanged += TailService_PropertyChanged;
+    }
+
+    string? originalJobStatus;
+
+    void TailService_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        SetCurrentMonitor();
+            if (e.PropertyName == "PodStatus")
+        {
+            var newJobStatus = tailRepository.CurrentJobRun?.PodStatus;
+            if (originalJobStatus != newJobStatus) {
+                originalJobStatus = newJobStatus;
+                messageService.ShowInfo($"Job status changed to {newJobStatus}");
+            }
+        }
+        InvokeAsync(() => StateHasChanged());
+    }
+    public void Dispose()
+    {
+        tailRepository.PropertyChanged -= TailService_PropertyChanged;
+    }
+
+    void zoomClicked()
+    {
+        zoom = !zoom;
+    }
+}

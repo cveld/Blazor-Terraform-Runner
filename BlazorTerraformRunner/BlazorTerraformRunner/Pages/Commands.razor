@@ -1,0 +1,70 @@
+﻿@page "/commands"
+@using BlazorTerraformRunner.Models;
+@using BlazorTerraformRunner.Services;
+@using BlazorTerraformRunner.Utility;
+@using BlazorTerraformRunner.Components;
+@using Microsoft.AspNetCore.Components.QuickGrid
+@using System.Collections.Concurrent;
+@using System.Text.Json;
+@using System.Timers;
+@using k8s.Autorest;
+@using k8s.Models;
+@using k8s;
+@inject KubernetesClient client
+@inject TerraformRunner terraformRunner
+@inject FileSystemMonitors fileSystemMonitors
+@inject IJSRuntime JsRuntime
+
+
+<PageTitle>Commands</PageTitle>
+
+
+<div class="row">
+    <div class="col-6">
+        <button @onclick="TerraformInitClicked">Init</button>
+    </div>
+    <div class="col-6">
+    </div>
+</div>
+<div class="row">
+    <div class="col-6">
+        <div class="col-6">
+            <button @onclick="TerraformPlanClicked">Plan</button>
+        </div>
+        <div class="col-6">
+            <button @onclick="TerraformPlanRefreshClicked">Plan -Refresh</button>
+        </div>
+    </div>
+    
+</div>
+<div class="row">
+    <div class="col-6">
+        <button @onclick="ApplyClicked">Apply</button>
+    </div>
+    <div class="col-6">
+    </div>
+</div>
+<div class="row">
+    <div class="col-6">
+        Perform the following action automatically when a file change is detected:<br />
+        <InputRadioGroup @bind-Value="autorun">
+            <InputRadio Value="@("None")" /> None<br />
+            <InputRadio Value="@("Plan")" /> Plan<br />
+            <InputRadio Value="@("PlanRefresh")" /> Plan -Refresh<br />
+        </InputRadioGroup>
+        <button @onclick="AutoSaveClicked">Save</button>
+    </div>
+    <div class="col-6">
+    </div>
+</div>
+
+
+@code {
+    string autorun;
+    void TerraformInitClicked() {}
+    void TerraformPlanClicked() {}
+    void TerraformPlanRefreshClicked() {}
+    void ApplyClicked() {}
+    void AutoSaveClicked() { }
+
+}

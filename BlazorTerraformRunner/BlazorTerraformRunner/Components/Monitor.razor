@@ -1,0 +1,45 @@
+﻿@using System.IO.Pipelines;
+@using System.Buffers;
+@using System.Text;
+@using ConsoleApp1;
+@using libVT100;
+@inherits MonitorBase
+@inject IJSRuntime JsRuntime
+<div class="monitor">
+    <header>
+        @((MarkupString)logging)
+
+        <button @onclick="ClearErrorsClicked">Clear errors</button>
+        <button @onclick="ScrollToBottomClicked">Scroll to bottom</button>
+
+        <p style="color:red">@((MarkupString)errors)</p>
+
+    </header>
+
+    <div class="output" @ref="outputElement">
+        @((MarkupString)output)
+    </div>
+</div>
+
+@code {
+    private ElementReference outputElement;
+
+    // https://learn.microsoft.com/en-us/windows/console/console-virtual-terminal-sequences
+    // https://github.com/binondord/AckTerm
+
+    async Task ScrollToBottomClicked()
+    {
+        await JsRuntime.InvokeVoidAsync(
+                "scrollToBottom", outputElement);
+    }
+    void ClearErrorsClicked()
+    {
+        errors = "";
+    }
+
+    protected override void OnInitialized()
+    {
+        System.Text.EncodingProvider provider = System.Text.CodePagesEncodingProvider.Instance;
+        Encoding.RegisterProvider(provider);
+    }
+}
